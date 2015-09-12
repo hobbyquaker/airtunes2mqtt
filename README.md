@@ -12,7 +12,8 @@ Line 81).
 
 Needs Node.js/npm
 
-```sudo npm -g airtunes2mqtt
+```
+sudo npm -g airtunes2mqtt
 airtunes2mqtt --help
 ```
 
