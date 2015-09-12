@@ -3,6 +3,7 @@
 This is a little daemon that can retrieve an audio stream via TCP socket or from a Alsa Loopback device and stream it 
 to Airplay/Airtunes compatible receivers. Via MQTT you can control the receivers volume and enable/disable the receivers.
 
+Based on [lperrins](https://github.com/lperrin) [node_airtunes](https://github.com/lperrin/node_airtunes) - all credits belong to him.
 
 This is a work in progress, a better Readme will follow asap. Right now the speaker config is hardcoded in index.js (see
 Line 81).
