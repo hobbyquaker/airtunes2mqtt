@@ -183,6 +183,7 @@ function add(speaker, volume, nosearch) {
 }
 
 function activeSpeakers() {
+    count = 0;
     for (const s in speakers) {
         if (speakers[s].connected === true) {
             count += 1;
