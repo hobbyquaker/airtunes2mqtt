@@ -1,51 +1,99 @@
-var pkg = require('./package.json');
+#!/usr/bin/env node
 
-var spawn = require('child_process').spawn;
+/* eslint-disable unicorn/no-process-exit */
 
-var net = require('net');
+const spawn = require('child_process').spawn;
+const net = require('net');
 
-var config = {
-    prefix: 'airtunes',
-    url: 'mqtt://localhost'
-};
+const airtunes = require('airtunes');
+const Mqtt = require('mqtt');
+const log = require('yalm');
 
+const pkg = require('./package.json');
+const config = require('./config.js');
 
-var mqtt = require('mqtt').connect(config.url, {will: {topic: config.prefix + '/connected', payload: '0'}});
+log.setLevel(config.verbosity);
 
-mqtt.publish(config.prefix + '/connected', '2');
+if (typeof config.speaker === 'string') {
+    config.speaker = [config.speaker];
+}
 
-var topic = config.prefix + '/set/#';
-console.log('mqtt subscribe ' + topic);
-mqtt.subscribe(topic);
+const speakers = {};
+let count = 0;
+let connected = false;
 
-mqtt.on('message', function (topic, message) {
-    console.log('mqtt < ', topic, message);
-    var parts = topic.split('/');
-    var speaker = parts[2];
-    var command = parts[3];
+log.info(pkg.name, pkg.version, 'starting');
+
+const mqtt = Mqtt.connect(config.mqttUrl, {will: {topic: config.name + '/connected', payload: '0', retain: true}});
+
+config.speaker.forEach(speaker => {
+    let port;
+    let [name, host, portStart, portEnd] = speaker.split(':');
+    if (typeof portEnd === 'undefined') {
+        port = portStart;
+        portStart = undefined;
+    }
+    if (name && host && (port || (portStart && portEnd))) {
+        speakers[name] = {host, port, portStart, portEnd};
+        mqttPub(config.name + '/status/' + name + '/enable', '0', {retain: true});
+    } else {
+        console.error('invalid speaker config', speaker);
+        process.exit(1);
+    }
+});
+
+mqtt.on('connect', () => {
+    log.info('mqtt connected', config.mqttUrl);
+
+    mqttPub(config.name + '/connected', connected ? '2' : '1', {retain: true});
+
+    const topic = config.name + '/set/#';
+    log.info('mqtt subscribe ' + topic);
+    mqtt.subscribe(topic);
+});
+
+mqtt.on('close', () => {
+    log.info('mqtt closed ' + config.mqttUrl);
+});
+
+mqtt.on('error', err => {
+    log.error('mqtt', err.toString());
+});
+
+mqtt.on('offline', () => {
+    log.error('mqtt offline');
+});
+
+mqtt.on('reconnect', () => {
+    log.info('mqtt reconnect');
+});
+
+mqtt.on('message', (topic, message) => {
+    message = message.toString();
+    log.debug('mqtt < ', topic, message);
+    const [, , speaker, command] = topic.split('/');
     if (!speakers[speaker]) {
-        console.log('unknown speaker', speaker);
+        log.info('unknown speaker', speaker);
         return;
     }
 
+    let obj;
+
     switch (command) {
         case 'enable':
-            if (message === 'false') {
+            if (message === 'false' || message === '0') {
                 stop(speaker);
-            } else if (message === 'true') {
+            } else if (message === 'true' || parseInt(message, 10) > 0) {
                 add(speaker);
             } else {
                 try {
-                    var obj = JSON.parse(message);
-                    if (typeof obj.val !== undefined) {
-                        console.log('obj.val=', obj.val);
-                        if (obj.val) {
-                            add(speaker);
-                        } else {
-                            stop(speaker);
-                        }
+                    obj = JSON.parse(message);
+                    if (obj.val) {
+                        add(speaker);
+                    } else {
+                        stop(speaker);
                     }
-                } catch (e) {
+                } catch (err) {
                     add(speaker);
                 }
             }
@@ -56,155 +104,172 @@ mqtt.on('message', function (topic, message) {
         case 'volume':
             if (isNaN(message)) {
                 try {
-                    var obj = JSON.parse(message);
+                    obj = JSON.parse(message);
                     setVolume(speaker, obj.val);
-                } catch (e) {
+                } catch (err) {
 
                 }
             } else {
                 setVolume(speaker, parseInt(message, 10));
             }
             break;
+        default:
     }
 });
 
-
-var airtunes = require('airtunes');
-
-airtunes.on('buffer', function (status) {
-    console.log('buffer', status);
+airtunes.on('buffer', status => {
+    log.debug('buffer', status);
 });
 
-var pipeActive;
 startPipe();
 
-// TODO remove hardcoded speaker config and load from json config file.
-var speakers = {
-    'Hobbyraum': {
-        host: '172.16.23.103',
-        port: 5000
-    },
-    'SoundFly': {
-        host: '172.16.23.136',
-        port: 1024
-    },
-    'Treppenhaus': {
-        host: '172.16.23.124',
-        port: 5002
-    },
-    'Waschküche': {
-        host: '172.16.23.139',
-        port: 5002
-    }
-};
+function add(speaker, volume, nosearch) {
+    log.debug('add', JSON.stringify(speakers[speaker]));
+    if (speakers[speaker].portStart && !nosearch) {
+        findport(speakers[speaker].host, speakers[speaker].portStart, speakers[speaker].portEnd, p => {
+            if (p) {
+                speakers[speaker].port = p;
+                log.debug('found port', speaker, p);
+                add(speaker, volume, true);
+            } else {
+                speakers[speaker].connected = false;
 
-function add(speaker, volume) {
+                mqttPub(config.name + '/status/' + speaker + '/enable', '0', {retain: true});
+            }
+        });
+        return;
+    }
 
     if (speakers[speaker] && speakers[speaker].device) {
-        console.log('speaker', speaker, 'already added');
+        log.warn('speaker', speaker, 'already added');
         return;
     }
 
     volume = volume || 20;
-    console.log('add ' + speakers[speaker].host + ':' + speakers[speaker].port);
 
-    console.log('mqtt >', config.prefix + '/status/' + speaker + '/connected', 1);
-    mqtt.publish(config.prefix + '/status/' + speaker + '/connected', '1', {retain: true});
+    log.info('add ' + speaker + ' ' + speakers[speaker].host + ':' + speakers[speaker].port);
+
+    mqttPub(config.name + '/status/' + speaker + '/connected', '1', {retain: true});
 
     speakers[speaker].device = airtunes.add(speakers[speaker].host, {
         port: speakers[speaker].port,
-        volume: volume,
+        volume,
         password: speakers[speaker].password
     });
 
-    speakers[speaker].device.on('status', function (status) {
-        console.log('status', speaker, status);
+    speakers[speaker].device.on('status', status => {
+        log.info('status', speaker, status);
         if (status === 'ready') {
             speakers[speaker].connected = true;
-
-            console.log('mqtt >', config.prefix + '/status/' + speaker + '/connected', 2);
-            mqtt.publish(config.prefix + '/status/' + speaker + '/connected', '2', {retain: true});
+            activeSpeakers();
+            mqttPub(config.name + '/status/' + speaker + '/enable', '1', {retain: true});
         } else if (status === 'stopped') {
             delete speakers[speaker].device;
             speakers[speaker].connected = false;
+            activeSpeakers();
 
-
-            console.log('mqtt >', config.prefix + '/status/' + speaker + '/connected', 0);
-            mqtt.publish(config.prefix + '/status/' + speaker + '/connected', '0', {retain: true});
+            mqttPub(config.name + '/status/' + speaker + '/enable', '0', {retain: true});
         }
     });
 
-    speakers[speaker].device.on('error', function (err) {
-        console.log('error', speaker, err);
+    speakers[speaker].device.on('error', err => {
+        log.error('error', speaker, err);
         delete speakers[speaker].device;
         speakers[speaker].connected = false;
+        activeSpeakers();
 
-        console.log('mqtt >', config.prefix + '/status/' + speaker + '/connected', 0);
-        mqtt.publish(config.prefix + '/status/' + speaker + '/connected', '0', {retain: true});
-
+        mqttPub(config.name + '/status/' + speaker + '/enable', '0', {retain: true});
     });
+}
 
+function activeSpeakers() {
+    for (const s in speakers) {
+        if (speakers[s].connected === true) {
+            count += 1;
+        }
+    }
+    mqttPub(config.name + '/status/activeSpeakers', String(count), {retain: true});
 }
 
 function stop(speaker) {
     if (!speakers[speaker] || !speakers[speaker].device) {
-        console.log('cant stop', speaker);
+        log.warn('cant stop', speaker);
         return;
     }
 
     speakers[speaker].enabled = false;
-    speakers[speaker].device.stop(function () {
-        console.log('removed', speaker);
+    speakers[speaker].device.stop(() => {
+        log.info('removed', speaker);
         delete speakers[speaker].device;
         speakers[speaker].connected = false;
+        activeSpeakers();
     });
 }
 
 function setVolume(speaker, volume) {
-    if (!speakers[speaker] || !speakers[speaker].device) return;
-    console.log('volume', speaker, volume);
+    if (!speakers[speaker] || !speakers[speaker].device) {
+        return;
+    }
+    log.debug('volume', speaker, volume);
     speakers[speaker].device.setVolume(volume);
-    mqtt.publish(config.prefix + '/status/' + speaker + '/volume', '' + volume, {retain: true});
+    mqttPub(config.name + '/status/' + speaker + '/volume', String(volume), {retain: true});
 }
 
-var arecord;
+let arecord;
 
-function startPipe(loopback) {
-
-    pipeActive = true;
-
-
-    if (loopback) {
-
-        arecord = spawn('/usr/bin/arecord', ['-f', 'cd', '-D', 'hw:Loopback,1']);
+function startPipe() {
+    if (config.loopback) {
+        arecord = spawn('/usr/bin/arecord', ['-f', 'cd', '-D', config.device]);
         arecord.stdout.pipe(airtunes);
-
+        connected = true;
+        log.info('Loopback connected');
+        mqttPub(config.name + '/connected', '2', {retain: true});
+        arecord.on('exit', () => {
+            connected = false;
+            log.info('Loopback disconnected');
+            mqttPub(config.name + '/connected', '1', {retain: true});
+        });
     } else {
+        const server = net.createServer(c => {
+            log.info('tcp client', c.remoteAddress + ':' + c.remotePort, 'connected');
+            mqttPub(config.name + '/connected', '2', {retain: true});
 
-        var server = net.createServer(function(c) {
-            console.log("Server connected");
-
-            c.on('end', function() {
-                console.log("Server disconnected");
+            c.on('end', () => {
+                connected = false;
+                log.info('tcp client disconnected');
                 c.end();
+                mqttPub(config.name + '/connected', '1', {retain: true});
             });
 
             c.pipe(airtunes, {end: false});
-
-            /*
-            c.on('data', function() {
-
-            });
-             */
-
+            connected = true;
         });
 
-        server.listen(12346, function() {
-            console.log("Server bound on port 12346");
+        server.listen(config.port, () => {
+            log.info('tcp listener bound on port', config.port);
         });
-
     }
-
 }
 
+function findport(host, start, end, cb) {
+    const timeout = setTimeout(() => {
+        cb(null);
+        cb = null;
+    }, 5000);
+    for (let p = start; p <= end; p++) {
+        const client = net.connect({host, port: p}, () => {
+            clearTimeout(timeout);
+            if (cb) {
+                cb(p);
+            }
+            cb = null;
+            client.end();
+        });
+        client.on('error', () => {});
+    }
+}
 
+function mqttPub(topic, payload, options) {
+    log.debug('mqtt >', topic, payload);
+    mqtt.publish(topic, payload, options);
+}

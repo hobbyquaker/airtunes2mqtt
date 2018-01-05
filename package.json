@@ -1,18 +1,26 @@
 {
   "name": "airtunes2mqtt",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "This is a little daemon that can retrieve an audio stream via TCP socket or from a Alsa Loopback device and stream it  to Airplay/Airtunes compatible receivers. Via MQTT you can control the receivers volume and enable/disable the receivers.",
   "main": "index.js",
   "preferGlobal": true,
+  "bin": {
+    "airtunes2mqtt": "./index.js"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "camo-purge; xo",
+    "lintfix": "xo --fix"
   },
   "author": "Sebastian 'hobbyquaker' Raff <hq@ccu.io> (https://github.com/hobbyquaker)",
   "license": "MIT",
   "dependencies": {
-    "airtunes": "^0.1.7",
-    "mqtt": "^0.3.13",
-    "yargs": "^1.3.3"
+    "airtunes": "github:microadam/node_airtunes#7e2d5f6b92755dd1908df7e688eb947c15700550",
+    "mqtt": "^2.15.0",
+    "yalm": "^4.1.0",
+    "yargs": "^10.0.3"
   },
   "repository": {
     "type": "git",
@@ -22,6 +30,7 @@
     "airtunes",
     "airplay",
     "mqtt",
+    "smarthome",
     "multi",
     "room",
     "audio",
@@ -33,5 +42,12 @@
   "bugs": {
     "url": "https://github.com/hobbyquaker/airtunes2mqtt/issues"
   },
-  "homepage": "https://github.com/hobbyquaker/airtunes2mqtt"
+  "homepage": "https://github.com/hobbyquaker/airtunes2mqtt",
+  "devDependencies": {
+    "camo-purge": "latest",
+    "xo": "latest"
+  },
+  "xo": {
+    "space": 4
+  }
 }
