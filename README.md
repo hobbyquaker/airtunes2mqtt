@@ -11,12 +11,12 @@
 
 This is a little daemon that can retrieve an audio stream via TCP socket or from a Alsa Loopback device and stream it 
 to Airplay/Airtunes compatible receivers. Via MQTT you can control the receivers volume and enable/disable the 
-receivers. I'm using it in conjunction with [Mopidy](https://www.mopidy.com/) to create a MultiRoom SmartHome-integrated
+receivers. I'm using it in conjunction with [Mopidy](https://www.mopidy.com/) to create a Multiroom Smarthome-integrated
 audio playback system with several Airplay Speakers.
 
 Based on [lperrins](https://github.com/lperrin) [node_airtunes](https://github.com/lperrin/node_airtunes) - all credits 
 belong to him. Also thanks to [Adam Duncan](https://github.com/microadam) for creating a 
-[fork]((https://github.com/microadam/node_airtunes) that works with recent´versions of Node.js.
+[fork](https://github.com/microadam/node_airtunes) that works with recent versions of Node.js.
 
 
 ## Installation
