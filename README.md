@@ -28,6 +28,9 @@ $ sudo npm install -g airtunes2mqtt
 $ airtunes2mqtt --help
 ```
 
+I suggest to use [pm2](http://pm2.keymetrics.io/) to manage the hm2mqtt process (start on system boot, manage log files, 
+...)
+
 
 ## Command Line Options
 
