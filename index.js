@@ -124,7 +124,7 @@ airtunes.on('buffer', status => {
 startPipe();
 
 function add(speaker, volume, nosearch) {
-    log.debug('add', speaker, {host: speakers[speaker].host, port: speakers[speaker].port, portStart: speakers[speaker].portStart, portEnd: speakers[speaker].portEnd});
+    log.debug('add', speaker, JSON.stringify({host: speakers[speaker].host, port: speakers[speaker].port, portStart: speakers[speaker].portStart, portEnd: speakers[speaker].portEnd}));
     if (speakers[speaker].portStart && !nosearch) {
         findport(speakers[speaker].host, speakers[speaker].portStart, speakers[speaker].portEnd, p => {
             if (p) {
