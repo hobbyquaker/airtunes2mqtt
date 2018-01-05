@@ -7,7 +7,7 @@
 [![XO code style](https://img.shields.io/badge/code_style-XO-5ed9c7.svg)](https://github.com/sindresorhus/xo)
 [![License][mit-badge]][mit-url]
 
-> MQTT controlled Multi-Room Audio based on Airplay/Airtunes 
+> MQTT controlled Multi-Room Audio based on Airplay/Airtunes 🔈
 
 This is a little daemon that can retrieve an audio stream via TCP socket or from a Alsa Loopback device and stream it 
 to Airplay/Airtunes compatible receivers. Via MQTT you can control the receivers volume and enable/disable the 
