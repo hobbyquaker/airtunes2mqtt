@@ -172,13 +172,40 @@ function add(speaker, volume, nosearch) {
         }
     });
 
-    speakers[speaker].device.on('error', err => {
-        log.error('error', speaker, err);
+    function speakerError(speaker, ev, err) {
+        log.error(ev, speaker, err);
         delete speakers[speaker].device;
         speakers[speaker].connected = false;
         activeSpeakers();
-
         mqttPub(config.name + '/status/' + speaker + '/enable', '0', {retain: true});
+    }
+
+    speakers[speaker].device.on('error', err => {
+        speakerError(speaker, 'error', err);
+    });
+    speakers[speaker].device.on('timeout', err => {
+        speakerError(speaker, 'timeout', err);
+    });
+    speakers[speaker].device.on('connection_refused', err => {
+        speakerError(speaker, 'connection_refused', err);
+    });
+    speakers[speaker].device.on('busy', err => {
+        speakerError(speaker, 'busy', err);
+    });
+    speakers[speaker].device.on('disconnected', err => {
+        speakerError(speaker, 'disconnected', err);
+    });
+    speakers[speaker].device.on('need_password', err => {
+        speakerError(speaker, 'need_password', err);
+    });
+    speakers[speaker].device.on('bad_password', err => {
+        speakerError(speaker, 'bad_password', err);
+    });
+    speakers[speaker].device.on('udp_ports', err => {
+        speakerError(speaker, 'udp_ports', err);
+    });
+    speakers[speaker].device.on('rtsp_socket', err => {
+        speakerError(speaker, 'rtsp_socket', err);
     });
 }
 
@@ -240,6 +267,14 @@ function startPipe() {
                 log.info('tcp client disconnected');
                 c.end();
                 mqttPub(config.name + '/connected', '1', {retain: true});
+            });
+
+            c.on('error', err => {
+                log.error('tcp error', err);
+            });
+
+            c.on('timeout', err => {
+                log.error('tcp timeout', err);
             });
 
             c.pipe(airtunes, {end: false});
