@@ -21,6 +21,7 @@ if (typeof config.speaker === 'string') {
 const speakers = {};
 let count = 0;
 let connected = false;
+let io;
 
 log.info(pkg.name, pkg.version, 'starting');
 
@@ -135,6 +136,9 @@ function add(speaker, volume, nosearch) {
                 speakers[speaker].connected = false;
 
                 mqttPub(config.name + '/status/' + speaker + '/enable', '0', {retain: true});
+                if (io) {
+                    io.emit('enabled', {name: speaker, enabled: false});
+                }
             }
         });
         return;
@@ -145,12 +149,23 @@ function add(speaker, volume, nosearch) {
         return;
     }
 
-    volume = volume || 20;
+    if (typeof volume === 'undefined') {
+        volume = (speakers[speaker] && typeof speakers[speaker].volume === 'undefined') ? 20 : speakers[speaker].volume;
+    }
+
+    mqttPub(config.name + '/status/' + speaker + '/volume', String(volume), {retain: true});
+    if (io) {
+        io.emit('volume', {name: speaker, volume});
+    }
 
     log.info('add ' + speaker + ' ' + speakers[speaker].host + ':' + speakers[speaker].port);
 
     mqttPub(config.name + '/status/' + speaker + '/connected', '1', {retain: true});
+    if (io) {
+        io.emit('enabled', {name: speaker, enabled: true});
+    }
 
+    speakers[speaker].volume = volume;
     speakers[speaker].device = airtunes.add(speakers[speaker].host, {
         port: speakers[speaker].port,
         volume,
@@ -163,12 +178,18 @@ function add(speaker, volume, nosearch) {
             speakers[speaker].connected = true;
             activeSpeakers();
             mqttPub(config.name + '/status/' + speaker + '/enable', '1', {retain: true});
+            if (io) {
+                io.emit('enabled', {name: speaker, enabled: true});
+            }
         } else if (status === 'stopped') {
             delete speakers[speaker].device;
             speakers[speaker].connected = false;
             activeSpeakers();
 
             mqttPub(config.name + '/status/' + speaker + '/enable', '0', {retain: true});
+            if (io) {
+                io.emit('enabled', {name: speaker, enabled: false});
+            }
         }
     });
 
@@ -178,6 +199,9 @@ function add(speaker, volume, nosearch) {
         speakers[speaker].connected = false;
         activeSpeakers();
         mqttPub(config.name + '/status/' + speaker + '/enable', '0', {retain: true});
+        if (io) {
+            io.emit('enabled', {name: speaker, enabled: false});
+        }
     }
 
     speakers[speaker].device.on('error', err => {
@@ -225,7 +249,6 @@ function stop(speaker) {
         return;
     }
 
-    speakers[speaker].enabled = false;
     speakers[speaker].device.stop(() => {
         log.info('removed', speaker);
         delete speakers[speaker].device;
@@ -235,12 +258,18 @@ function stop(speaker) {
 }
 
 function setVolume(speaker, volume) {
-    if (!speakers[speaker] || !speakers[speaker].device) {
+    if (!speakers[speaker]) {
         return;
     }
     log.debug('volume', speaker, volume);
-    speakers[speaker].device.setVolume(volume);
+    speakers[speaker].volume = volume;
+    if (speakers[speaker].device) {
+        speakers[speaker].device.setVolume(volume);
+    }
     mqttPub(config.name + '/status/' + speaker + '/volume', String(volume), {retain: true});
+    if (io) {
+        io.emit('volume', {name: speaker, volume});
+    }
 }
 
 let arecord;
@@ -308,4 +337,45 @@ function findport(host, start, end, cb) {
 function mqttPub(topic, payload, options) {
     log.debug('mqtt >', topic, payload);
     mqtt.publish(topic, payload, options);
+}
+
+if (!config.disableWeb) {
+    const path = require('path');
+    const express = require('express');
+    const app = express();
+    const server = require('http').createServer(app);
+    io = require('socket.io')(server);
+
+    io.on('connection', client => {
+        log.info('socket.io connection');
+
+        const data = {};
+        Object.keys(speakers).forEach(name => {
+            data[name] = {
+                enabled: speakers[name].connected,
+                volume: speakers[name].volume
+            };
+        });
+        client.emit('speakers', data);
+
+        client.on('volume', data => {
+            setVolume(data.name, data.volume);
+        });
+
+        client.on('enabled', data => {
+            if (data.enabled) {
+                add(data.name);
+            } else {
+                stop(data.name);
+            }
+        });
+    });
+
+    server.listen(config.webPort);
+
+    app.get('/', (req, res) => {
+        res.redirect(301, '/ui');
+    });
+    app.use('/ui', express.static(path.join(__dirname, '/ui')));
+    app.use('/node_modules', express.static(path.join(__dirname, '/node_modules')));
 }

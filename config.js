@@ -8,6 +8,8 @@ module.exports = require('yargs')
     .describe('port', 'TCP Listen port for audio reception')
     .describe('loopback', 'Use Alsa loopback device instead of TCP listener')
     .describe('device', 'Alsa loopback device')
+    .describe('disable-web', 'disable web server')
+    .describe('web-port', 'web server listening port')
     .describe('help', 'show help')
     .alias({
         h: 'help',
@@ -25,7 +27,8 @@ module.exports = require('yargs')
         name: 'airtunes',
         verbosity: 'info',
         p: 12346,
-        d: 'hw:Loopback,1'
+        d: 'hw:Loopback,1',
+        'web-port': 8096
     })
     .demand('speaker')
     .version()
