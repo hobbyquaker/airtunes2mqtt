@@ -98,7 +98,7 @@ respectively when the alsa loopback device is connected and `0` as last will.
 
 ## License
 
-Copyright (c) 2015-2018 Sebastian 'hobbyquaker' Raff <hobbyquaker@gmail.com>
+MIT Copyright (c) 2015-2018 Sebastian 'hobbyquaker' Raff <hobbyquaker@gmail.com>
 
 [mit-badge]: https://img.shields.io/badge/License-MIT-blue.svg?style=flat
 [mit-url]: LICENSE
