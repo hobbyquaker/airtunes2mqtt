@@ -79,6 +79,8 @@ volume slider and adding an iframe that shows the airtunes2mqtt ui:
 
 ![musicbox](docs/musicbox.png)
 
+`/usr/local/lib/python2.7/dist-packages/mopidy_musicbox_webclient/static/index.html`
+
 ```diff
          <li data-icon="false">
 -            <div><!-- slider for volume -->
