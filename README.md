@@ -38,6 +38,8 @@ files, ...).
 Usage: airtunes2mqtt [options]
 
 Options:
+  --disable-web    disable web server
+  --web-port       web server listening port                     [default: 8096]
   --version        Show version number                                 [boolean]
   -h, --help       Show help                                           [boolean]
   -u, --mqtt-url   mqtt broker url. May contain user/password
@@ -51,16 +53,12 @@ Options:
   -p, --port       TCP Listen port for audio reception          [default: 12346]
   -l, --loopback   Use Alsa loopback device instead of TCP listener    [boolean]
   -d, --device     Alsa loopback device               [default: "hw:Loopback,1"]
-
 ```
 
 
 ### Example Command Line
 
-```
-$ airtunes2mqtt -s LivingRoom:192.168.2.100:5000 Kitchen:192.168.2.103:5000 -s SoundFly:192.168.2.105:1024:1032 -v debug
-
-```
+`$ airtunes2mqtt -s LivingRoom:192.168.2.100:5000 Kitchen:192.168.2.103:5000 -s SoundFly:192.168.2.105:1024:1032 -v debug`
 
 ### Example Mopidy Configuration
 
@@ -69,7 +67,20 @@ $ airtunes2mqtt -s LivingRoom:192.168.2.100:5000 Kitchen:192.168.2.103:5000 -s S
 output = audioconvert ! audio/x-raw,format=S16LE,rate=44100,channels=2,layout=interleaved ! tcpclientsink host=127.0.0.1 port=12346
 ```
 
-## Topics
+
+## Web UI
+
+airtunes2mqtt offers a simple web interface to enable/disable speakers and adjust volume:
+
+![webapp](docs/ui.jpg)
+
+I just integrated that into the frontend of my mopidy server ("musicbox webclient") by commenting out the original
+volume slider and adding an iframe that shows the airtunes2mqtt ui:
+
+![musicbox](docs/musicbox.png)
+
+
+## MQTT Topics
 
 ### subscribed
 
