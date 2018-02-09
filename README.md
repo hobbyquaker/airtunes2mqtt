@@ -70,15 +70,17 @@ output = audioconvert ! audio/x-raw,format=S16LE,rate=44100,channels=2,layout=in
 
 ## Web UI
 
-airtunes2mqtt offers a simple web interface to enable/disable speakers and adjust volume:
+Airtunes2mqtt offers a simple user interface (web app capable) to enable/disable speakers and adjust volume:
 
 ![webapp](docs/ui.jpg)
 
-I just integrated that into the frontend of my mopidy server ("musicbox webclient") by removing the original
-volume slider and adding an iframe that shows the airtunes2mqtt ui:
+
+### Mopidy UI integration
+
+I just added the airtunes2mqtt ui into the frontend of my mopidy server ("musicbox webclient") by removing the original
+volume slider and adding an iframe:
 
 ![musicbox](docs/musicbox.png)
-
 `/usr/local/lib/python2.7/dist-packages/mopidy_musicbox_webclient/static/index.html`
 
 ```diff
