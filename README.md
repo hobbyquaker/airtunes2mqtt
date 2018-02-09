@@ -7,11 +7,11 @@
 [![XO code style](https://img.shields.io/badge/code_style-XO-5ed9c7.svg)](https://github.com/sindresorhus/xo)
 [![License][mit-badge]][mit-url]
 
-> MQTT controlled Multi-Room Audio based on Airplay/Airtunes 🔈
+> Multi-Room Audio based on Airplay/Airtunes with MQTT support 🔈
 
 This is a little daemon that can retrieve an audio stream via TCP socket or from a Alsa Loopback device and stream it 
-to Airplay/Airtunes compatible receivers. Via MQTT you can control the receivers volume and enable/disable the 
-receivers. I'm using it in conjunction with [Mopidy](https://www.mopidy.com/) to create a Multiroom Smarthome-integrated
+to one or more Airplay/Airtunes compatible receivers. Via its Web UI or MQTT you can control the receivers volume and enable/disable the 
+receivers. I'm using it in conjunction with [Mopidy](https://www.mopidy.com/) to create a Multiroom Smart Home integrated
 audio playback system with several Airplay Speakers.
 
 Based on [lperrins](https://github.com/lperrin) [node_airtunes](https://github.com/lperrin/node_airtunes) - all credits 
@@ -58,7 +58,9 @@ Options:
 
 ### Example Command Line
 
-`$ airtunes2mqtt -s LivingRoom:192.168.2.100:5000 Kitchen:192.168.2.103:5000 -s SoundFly:192.168.2.105:1024:1032 -v debug`
+```
+$ airtunes2mqtt -s LivingRoom:192.168.2.100:5000 Kitchen:192.168.2.103:5000 -s SoundFly:192.168.2.105:1024:1032 -v debug
+```
 
 ### Example Mopidy Configuration
 
