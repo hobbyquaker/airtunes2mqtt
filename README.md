@@ -7,11 +7,11 @@
 [![XO code style](https://img.shields.io/badge/code_style-XO-5ed9c7.svg)](https://github.com/sindresorhus/xo)
 [![License][mit-badge]][mit-url]
 
-> MQTT controlled Multi-Room Audio based on Airplay/Airtunes 🔈
+> Multi-Room Audio based on Airplay/Airtunes with MQTT support 🔈
 
 This is a little daemon that can retrieve an audio stream via TCP socket or from a Alsa Loopback device and stream it 
-to Airplay/Airtunes compatible receivers. Via MQTT you can control the receivers volume and enable/disable the 
-receivers. I'm using it in conjunction with [Mopidy](https://www.mopidy.com/) to create a Multiroom Smarthome-integrated
+to one or more Airplay/Airtunes compatible receivers. Via its Web UI or MQTT you can control the receivers volume and enable/disable the 
+receivers. I'm using it in conjunction with [Mopidy](https://www.mopidy.com/) to create a Multiroom Smart Home integrated
 audio playback system with several Airplay Speakers.
 
 Based on [lperrins](https://github.com/lperrin) [node_airtunes](https://github.com/lperrin/node_airtunes) - all credits 
@@ -58,7 +58,9 @@ Options:
 
 ### Example Command Line
 
-`$ airtunes2mqtt -s LivingRoom:192.168.2.100:5000 Kitchen:192.168.2.103:5000 -s SoundFly:192.168.2.105:1024:1032 -v debug`
+```
+$ airtunes2mqtt -s LivingRoom:192.168.2.100:5000 Kitchen:192.168.2.103:5000 -s SoundFly:192.168.2.105:1024:1032 -v debug
+```
 
 ### Example Mopidy Configuration
 
@@ -70,14 +72,30 @@ output = audioconvert ! audio/x-raw,format=S16LE,rate=44100,channels=2,layout=in
 
 ## Web UI
 
-airtunes2mqtt offers a simple web interface to enable/disable speakers and adjust volume:
+Airtunes2mqtt offers a simple user interface (web app capable) to enable/disable speakers and adjust volume:
 
 ![webapp](docs/ui.jpg)
 
-I just integrated that into the frontend of my mopidy server ("musicbox webclient") by commenting out the original
-volume slider and adding an iframe that shows the airtunes2mqtt ui:
+
+### Mopidy UI integration
+
+I just added the airtunes2mqtt ui into the frontend of my mopidy server ("musicbox webclient") by removing the original
+volume slider and adding an iframe:
 
 ![musicbox](docs/musicbox.png)
+`/usr/local/lib/python2.7/dist-packages/mopidy_musicbox_webclient/static/index.html`
+
+```diff
+         <li data-icon="false">
+-            <div><!-- slider for volume -->
+-                <a href="#" onclick="controls.doMute(); return false;"><span title="Toggle mute"><i id="mutebt" class="fa fa-volume-up"></i></span></a>
+-                <label for="volumeslider" class="ui-hidden-accessible">Volume</label>
+-                <input id="volumeslider" data-highlight="true" name="volumeslider" data-mini="true" type="range" min="0"
+-                       value="0" max="100"/>
+-            </div>
++            <iframe style="border:0;padding:0;margin:0;height:450px;width:240px;" src="http://192.168.2.100:8096/ui/index.html"></iframe>
+         </li>
+```
 
 
 ## MQTT Topics
