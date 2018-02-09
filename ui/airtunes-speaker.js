@@ -27,15 +27,15 @@ class AirtunesSpeaker extends PolymerElement {
         this.__slider = this.shadowRoot.querySelector('paper-slider');
         this.__slider.addEventListener('immediate-value-change', () => {
             this.volume = this.__slider.immediateValue;
-            this.dispatchEvent(new CustomEvent('volume-changed', {detail: {volume: this.volume}}));
+            if (!this.__suppressEvent) {
+                this.dispatchEvent(new CustomEvent('volume-changed', {detail: {volume: this.volume}}));
+            }
         });
         this.__slider.addEventListener('value-changed', () => {
             this.volume = this.__slider.value;
-            this.dispatchEvent(new CustomEvent('volume-changed', {detail: {volume: this.volume}}));
-        });
-        this.__slider.addEventListener('pressed', () => {
-            console.log('PRESSED CHANGED');
-            // This.dispatchEvent(new CustomEvent('volume-changed', {detail: {volume: this.volume}}));
+            if (!this.__suppressEvent) {
+                this.dispatchEvent(new CustomEvent('volume-changed', {detail: {volume: this.volume}}));
+            }
         });
 
         this.__toggle = this.shadowRoot.querySelector('paper-toggle-button');
@@ -46,7 +46,6 @@ class AirtunesSpeaker extends PolymerElement {
     }
 
     _volumeChange(volume) {
-        console.log('_setVolume', volume);
         if (!this.__slider) {
             setTimeout(() => {
                 this._volumeChange(volume);
@@ -54,7 +53,12 @@ class AirtunesSpeaker extends PolymerElement {
             return;
         }
         if (!this.__slider.pressed) {
+            clearTimeout(this.__suppressTimeout);
+            this.__suppressEvent = true;
             this.__slider.value = volume;
+            this.__suppressTimeout = setTimeout(() => {
+                this.__suppressEvent = false;
+            }, 400);
         }
     }
 
