@@ -74,10 +74,22 @@ airtunes2mqtt offers a simple web interface to enable/disable speakers and adjus
 
 ![webapp](docs/ui.jpg)
 
-I just integrated that into the frontend of my mopidy server ("musicbox webclient") by commenting out the original
+I just integrated that into the frontend of my mopidy server ("musicbox webclient") by removing the original
 volume slider and adding an iframe that shows the airtunes2mqtt ui:
 
 ![musicbox](docs/musicbox.png)
+
+```diff
+         <li data-icon="false">
+-            <div><!-- slider for volume -->
+-                <a href="#" onclick="controls.doMute(); return false;"><span title="Toggle mute"><i id="mutebt" class="fa fa-volume-up"></i></span></a>
+-                <label for="volumeslider" class="ui-hidden-accessible">Volume</label>
+-                <input id="volumeslider" data-highlight="true" name="volumeslider" data-mini="true" type="range" min="0"
+-                       value="0" max="100"/>
+-            </div>
++            <iframe style="border:0;padding:0;margin:0;height:450px;width:240px;" src="http://192.168.2.100:8096/ui/index.html"></iframe>
+         </li>
+```
 
 
 ## MQTT Topics
