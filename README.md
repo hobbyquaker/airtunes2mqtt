@@ -84,7 +84,7 @@ volume slider and adding an iframe that shows the airtunes2mqtt ui:
 
 ### subscribed
 
-* `airtunes/set/<speaker-name>/enable` - Enable or disable a speaker (payload can be `true`, `false`, `0` or `1)
+* `airtunes/set/<speaker-name>/enable` - Enable or disable a speaker (payload can be `true`, `false`, `0` or `1`)
 * `airtunes/set/<speaker-name>/disable` - Disable a speaker (payload is irrelevant)
 * `airtunes/set/<speaker-name>/volume` - Set a speakers volume (payload has to be a number between `0` and `100`)
 
