@@ -7,7 +7,6 @@ import '../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../node_modules/@polymer/paper-slider/paper-slider.js';
 
 class AirtunesSpeaker extends PolymerElement {
-
     static get template() {
         return `<style>
                     paper-toggle-button {display: inline-block; vertical-align: middle;}
@@ -79,7 +78,6 @@ class AirtunesSpeaker extends PolymerElement {
             '_volumeChange(volume)'
         ];
     }
-
 }
 
 customElements.define('airtunes-speaker', AirtunesSpeaker);

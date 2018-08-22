@@ -2,7 +2,7 @@
 
 /* eslint-disable unicorn/no-process-exit */
 
-const spawn = require('child_process').spawn;
+const {spawn} = require('child_process');
 const net = require('net');
 
 const airtunes = require('airtunes');
