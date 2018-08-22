@@ -1,7 +1,7 @@
 /* global CustomEvent, customElements */
 /* eslint-disable import/extensions, import/no-unassigned-import */
 
-import {Element as PolymerElement} from '../node_modules/@polymer/polymer/polymer-element.js';
+import {PolymerElement} from '../node_modules/@polymer/polymer/polymer-element.js';
 
 import '../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../node_modules/@polymer/paper-slider/paper-slider.js';
