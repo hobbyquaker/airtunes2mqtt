@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+
+<title>airtunes2mqtt</title>
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="viewport" content="width=device-width">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+<style>
+    html, body {
+        height: 100%;
+        background-color: #2c3e50 !important;
+        padding:0;
+        margin:0;
+        color: #eee;
+        font-family: Lato, sans-serif;
+        font-weight: bold;
+        font-size: 16px;
+    }
+</style>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+<script type="module" src="./src/airtunes-app.js"></script>
+
+<airtunes-app></airtunes-app>
+

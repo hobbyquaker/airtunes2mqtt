@@ -1,6 +1,6 @@
 {
   "name": "airtunes2mqtt",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "description": "This is a little daemon that can retrieve an audio stream via TCP socket or from a Alsa Loopback device and stream it to Airplay/Airtunes compatible receivers. Via Web UI or MQTT you can control the receivers volume and enable/disable the receivers.",
   "main": "index.js",
   "preferGlobal": true,
@@ -12,13 +12,12 @@
   },
   "scripts": {
     "test": "camo-purge; xo",
-    "lintfix": "xo --fix"
+    "lintfix": "xo --fix",
+    "build": "polymer build; rm -r www; mv build/default www; rm -r build"
   },
   "author": "Sebastian 'hobbyquaker' Raff <hobbyquaker@gmail.com> (https://github.com/hobbyquaker)",
   "license": "MIT",
   "dependencies": {
-    "@polymer/paper-slider": "^3.0.0-pre.21",
-    "@polymer/paper-toggle-button": "^3.0.0-pre.21",
     "airtunes": "github:hobbyquaker/node_airtunes",
     "express": "^4.16.3",
     "mqtt": "^2.18.3",
@@ -48,7 +47,12 @@
   },
   "homepage": "https://github.com/hobbyquaker/airtunes2mqtt",
   "devDependencies": {
+    "@polymer/paper-slider": "^3.0.1",
+    "@polymer/paper-toggle-button": "^3.0.1",
+    "@polymer/polymer": "^3.1.0",
+    "@webcomponents/webcomponentsjs": "^2.2.0",
     "camo-purge": "latest",
+    "polymer-cli": "^1.9.1",
     "xo": "latest"
   },
   "xo": {

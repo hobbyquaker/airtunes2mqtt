@@ -94,7 +94,7 @@ mqtt.on('message', (topic, message) => {
                     } else {
                         stop(speaker);
                     }
-                } catch (err) {
+                } catch (error) {
                     add(speaker);
                 }
             }
@@ -107,9 +107,7 @@ mqtt.on('message', (topic, message) => {
                 try {
                     obj = JSON.parse(message);
                     setVolume(speaker, obj.val);
-                } catch (err) {
-
-                }
+                } catch (error) {}
             } else {
                 setVolume(speaker, parseInt(message, 10));
             }
@@ -349,14 +347,16 @@ if (!config.disableWeb) {
     io.on('connection', client => {
         log.info('socket.io connection');
 
-        const data = {};
-        Object.keys(speakers).forEach(name => {
-            data[name] = {
-                enabled: speakers[name].connected,
-                volume: speakers[name].volume
-            };
+        client.on('speakers', callback => {
+            const data = {};
+            Object.keys(speakers).forEach(name => {
+                data[name] = {
+                    enabled: speakers[name].connected,
+                    volume: speakers[name].volume
+                };
+            });
+            callback(data);
         });
-        client.emit('speakers', data);
 
         client.on('volume', data => {
             setVolume(data.name, data.volume);
@@ -376,6 +376,5 @@ if (!config.disableWeb) {
     app.get('/', (req, res) => {
         res.redirect(301, '/ui');
     });
-    app.use('/ui', express.static(path.join(__dirname, '/ui')));
-    app.use('/node_modules', express.static(path.join(__dirname, '/node_modules')));
+    app.use('/ui', express.static(path.join(__dirname, '/www')));
 }

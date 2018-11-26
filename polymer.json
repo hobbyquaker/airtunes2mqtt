@@ -1,0 +1,32 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/airtunes-app.js",
+  "sources": [
+  ],
+  "extraDependencies": [
+    "node_modules/@webcomponents/webcomponentsjs/*.js",
+    "!node_modules/@webcomponents/webcomponentsjs/gulpfile.js",
+    "node_modules/@webcomponents/webcomponentsjs/bundles/*.js"
+  ],
+  "builds": [{
+    "basePath": "/",
+    "bundle": {
+      "stripComments": true,
+      "inlineScripts": true,
+      "inlineCss": true,
+      "sourcemaps": true
+    },
+    "js": {"minify": true},
+    "css": {"minify": true},
+    "html": {"minify": true},
+    "addServiceWorker": false,
+    "insertPrefetchLinks": false
+  }],
+  "moduleResolution": "node",
+  "npm": true,
+  "lint": {
+    "rules": [
+      "polymer-3"
+    ]
+  }
+}
